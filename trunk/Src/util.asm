@@ -14,7 +14,12 @@ include "utils.inc"
 ; exitCode
 ; no results
 proc ExitProgram
-
+		@ARGS:  @code:byte         ;я не знаю як користуватись аргументами.
+	push ax				   ;виправте якщо не так
+	mov al,@code
+	mov ah,4Ch
+	int 21h
+	pop ax
 endp
 
 
@@ -55,6 +60,13 @@ endp
 ; no params
 ; no results
 proc HideCursor
+	push cx
+	push ax
+	  mov ch,20h
+	  mov ah,01h
+	  int 10h
+	pop ax
+	pop cx
 endp
 
 
@@ -65,6 +77,13 @@ endp
 ; no params
 ; no results
 proc ShowCursor
+	push cx
+	push ax
+	  mov cx,0607h
+	  mov ah,01h
+	  int 10h
+	pop ax
+	pop cx
 endp
 
 
