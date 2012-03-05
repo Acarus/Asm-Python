@@ -153,6 +153,16 @@ endp
 ; tickCount 
 ; no results
 proc DelayExecution
+		    ARG:		@@tick:word
+	push ax
+	push cx
+	push dx
+		mov ah,86h
+		mov dx,[@@tick]
+		int 15h
+	pop dx
+	pop cx
+	pop ax
 endp
 
 
