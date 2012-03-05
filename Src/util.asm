@@ -153,7 +153,7 @@ endp
 ; tickCount 
 ; no results
 proc DelayExecution
-		    ARG:		@@tick:word
+		    ARG:		@@tick:word ;тут з аргументами теж "???"
 	push ax
 	push cx
 	push dx
