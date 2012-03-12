@@ -105,10 +105,36 @@ endp
 
 ; x, y, char, color
 ; no results
-proc OutputChar
 
-;s
+;COLOR TABLE :::
+;0 = black
+;1 = blue
+;2 = green
+;4 = red
+;6 = yellow
+;7 = white
+;8 = gray
+
+
+proc OutputChar
+ARG @@x:byte, @@y:byte , @@char:byte , @@color:byte 
+
+	mov	ah , 02h
+	mov	bh , 0
+	mov	dh , [@@x]
+	mov	dl , [@@y]
+	int	10h
+	mov	ah , 09h
+	mov	bh , 0h
+	mov	al , [@@char]
+	mov	cx , 1h
+	mov	bl , [@@color]
+	int 10h
+	ret
 endp
+
+
+
 
 
 ;#######################################################################################
