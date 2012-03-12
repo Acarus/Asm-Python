@@ -58,7 +58,17 @@ endp
 ; no params
 ; no results
 proc ClearScreen
+
+	mov	ah , 06h
+	xor	cx , cx
+	xor	dx , dx
+	mov	al , 0
+	mov	bh , 0
+	int	19h
+
+ret
 endp
+
 
 
 ;#######################################################################################
