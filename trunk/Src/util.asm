@@ -169,16 +169,16 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	mov	si , @@str
 	cmp	[si] , 0
 	je	@@exit
-	mov	dl , [@@y]
-	mov	dh , [@@x]
+	mov	dh , [@@y]
+	mov	dl , [@@x]
 	cmp dh , 25
 	ja	@@exit
-	cmp	dl , 40
+	cmp	dh , 40
 	ja	@@exit
 	mov	ah , 02h
 	mov	bh , 0
 	int	10h
-    mov	ah , 09h
+        mov	ah , 09h
 	mov	bh , 0
 	mov	al , [si]
 	mov	cx , 1
@@ -188,7 +188,7 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 @@label:
 
 	inc	si
-	inc	dh
+	inc	dl
 	cmp [si] , 0
 	je	@@exit
 	push dx
@@ -215,15 +215,14 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	
 @@nextLine:
 
-	xor	dh , dh
-	inc	di
+	xor	dl , dl
+	inc	dh
 	jmp	@@WriteChar
 
 @@exit:
 	
 ret
 endp
-
 
 
 ;#######################################################################################
@@ -295,8 +294,13 @@ endp
 ; no params
 ; ax=scan/ascii
 proc ReadInputChar
-endp
 
+	xor ax , ax
+	int 16h
+	movzx ax , ah
+
+ret
+endp
 
 ;#######################################################################################
 ;#######################################################################################
