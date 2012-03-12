@@ -163,6 +163,7 @@ endp
 
 ; x, y, zero-terminated-line, color
 ; no results
+
 proc OutputString
 ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
                        
@@ -171,7 +172,7 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	je	@@exit
 	mov	dh , [@@y]
 	mov	dl , [@@x]
-	cmp dh , 25
+	cmp     dl , 25
 	ja	@@exit
 	cmp	dh , 40
 	ja	@@exit
@@ -189,16 +190,16 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 
 	inc	si
 	inc	dl
-	cmp [si] , 0
-	je	@@exit
+	cmp  [si] , 1
+	jc	@@exit
 	push dx
 	xor	ax , ax
-	mov	al , dh	
+	mov	al , dl	
 	mov	cl , 25
 	div	cl
 	pop	dx
-	cmp	ah , 0
-	je	@@nextLine
+	cmp	ah , 1
+	jc	@@nextLine
 
 @@WriteChar:
 
@@ -223,6 +224,8 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	
 ret
 endp
+
+
 
 
 ;#######################################################################################
