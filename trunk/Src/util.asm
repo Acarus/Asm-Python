@@ -158,6 +158,12 @@ endp
 ; x, y, zero-terminated-line, color
 ; no results
 proc OutputString
+ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
+
+	
+	
+
+ret
 endp
 
 
