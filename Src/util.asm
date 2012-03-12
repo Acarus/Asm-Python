@@ -21,6 +21,7 @@ proc ExitProgram
 	int 21h
 	pop ax
 	ret
+	
 endp
 
 
@@ -69,6 +70,7 @@ proc HideCursor
 	  int 10h
 	pop ax
 	pop cx
+	ret
 endp
 
 
@@ -86,6 +88,8 @@ proc ShowCursor
 	  int 10h
 	pop ax
 	pop cx
+	ret
+	
 endp
 
 
@@ -193,16 +197,18 @@ endp
 ; tickCount 
 ; no results
 proc DelayExecution
-		    ARG:		@@tick:word ;тут з аргументами теж "???"
+	ARG		@@tick:word 
 	push ax
 	push cx
 	push dx
-		mov ah,86h
-		mov dx,[@@tick]
-		int 15h
+	mov ah,86h
+	mov dx,[@@tick]
+	int 15h
 	pop dx
 	pop cx
 	pop ax
+	ret
+	
 endp
 
 
