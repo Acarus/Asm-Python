@@ -33,6 +33,11 @@ endp
 ; no params
 ; al=success/fail
 proc InitVideo
+   
+    	mov  ah, 0
+        mov  al, 1
+        int  10h
+		ret
 endp
 
 
