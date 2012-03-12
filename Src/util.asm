@@ -96,6 +96,15 @@ endp
 ; x, y
 ; no results
 proc SetCursorPos
+ARG @@x:byte , @@y:byte 
+	
+	mov	ah , 02h
+	mov	bh , 0
+	mov	dh , [@@x]
+	mov	dl , [@@y]
+	int	10h
+	ret
+	
 endp
 
 
@@ -131,6 +140,7 @@ ARG @@x:byte, @@y:byte , @@char:byte , @@color:byte
 	mov	bl , [@@color]
 	int 10h
 	ret
+	
 endp
 
 
