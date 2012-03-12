@@ -155,16 +155,70 @@ endp
 ;#######################################################################################
 ;#######################################################################################
 
+
 ; x, y, zero-terminated-line, color
 ; no results
 proc OutputString
 ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
-
+                       
+	mov	si , @@str
+	cmp	[si] , 0
+	je	@@exit
+	mov	dl , [@@y]
+	mov	dh , [@@x]
+	cmp dh , 25
+	ja	@@exit
+	cmp	dl , 40
+	ja	@@exit
+	mov	ah , 02h
+	mov	bh , 0
+	int	10h
+    mov	ah , 09h
+	mov	bh , 0
+	mov	al , [si]
+	mov	cx , 1
+	mov	bl , [@@color]
+	int 10h
 	
-	
+@@label:
 
+	inc	si
+	inc	dh
+	cmp [si] , 0
+	je	@@exit
+	push dx
+	xor	ax , ax
+	mov	al , dh	
+	mov	cl , 25
+	div	cl
+	pop	dx
+	cmp	ah , 0
+	je	@@nextLine
+
+@@WriteChar:
+
+        mov	ah , 02h
+	mov	bh , 0
+	int	10h
+	mov	ah , 09h
+	mov	bh , 0
+	mov	al , [si]
+	mov	cx , 1
+	mov	bl , [@@color]
+	int 10h
+	jmp	@@label
+	
+@@nextLine:
+
+	xor	dh , dh
+	inc	di
+	jmp	@@WriteChar
+
+@@exit:
+	
 ret
 endp
+
 
 
 ;#######################################################################################
