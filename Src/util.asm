@@ -14,13 +14,15 @@ include "utils.inc"
 ; exitCode
 ; no results
 proc ExitProgram
-		 ARG:  @@code:byte         ;я не знаю як користуватись аргументами.
-	push ax				   ;виправте якщо не так
-	mov al,[@@code]
+	ARG  @@Code:byte        
+	push ax				   
+	mov al,[@@Code]
 	mov ah,4Ch
 	int 21h
 	pop ax
+	ret
 endp
+
 
 
 ;#######################################################################################
