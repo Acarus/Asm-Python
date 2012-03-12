@@ -226,8 +226,51 @@ endp
 ;#######################################################################################
 
 ; pointerToImage (screenWidth*screenHeight), color
+
 proc OutputScreenImage
+ARG @@buffer:word
+
+	mov	si , @@buffer
+	mov	dh , 0
+	mov	dl , 0
+
+@@label:
+
+        mov	ah , 02h
+	mov	bh , 0
+	int	10h
+	mov	ah , 09h
+	mov	bh , 0h
+	mov	al , [si]
+	mov	cx , 1h
+	mov	bl , [si + 1]
+	int 10h
+	add	si , 2
+	inc	dl
+	push	dx
+
+	mov	cl , 25
+	xor	ax , ax
+	mov	al , dl
+	div	cl
+	pop	dx
+	cmp	ah , 0 
+	je	@@NextLine
+	jmp	@@label
+
+
+@@NextLine:
+
+	inc	dh
+	xor	dl , dl
+	cmp	dh , 41
+	jne	@@label
+
+
+@@exit:
+ret
 endp
+
 
 
 ;#######################################################################################
