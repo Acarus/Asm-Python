@@ -462,4 +462,18 @@ endp
 ; maximum
 ; ax=random
 proc GenerateRandomNumber
+ARG	@@max:word
+push 	cx
+mov	bx , [@@max]
+in 	al,041h
+mov	ah , al
+in	al,042h
+@@label1:
+cmp	ax , bx
+ja	@@dil
+pop	cx
+ret
+@@dil:
+shr	ax , 1
+jmp	@@label1
 endp
