@@ -21,6 +21,11 @@ global ShutdownVideo: proc
 ; no results
 global ClearScreen: proc
 
+;params :Screen name and buffer
+;result :Screen in buffer
+
+global ReadScreen: proc
+
 
 ; no params
 ; no results
