@@ -22,7 +22,7 @@ global ShutdownVideo: proc
 global ClearScreen: proc
 
 ;params :Screen name and buffer
-;result :Screen in buffer
+;result :Screen in buffer and cf = 0 if successfull or cf = 1 if error 
 
 global ReadScreen: proc
 
