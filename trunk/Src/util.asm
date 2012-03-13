@@ -280,7 +280,7 @@ ARG @@buffer:word
 
 	inc	dh
 	xor	dl , dl
-	cmp	dh , 41
+	cmp	dh , 40
 	jne	@@label
 
 
