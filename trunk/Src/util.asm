@@ -379,7 +379,14 @@ endp
 
 ; no params
 ; ax=scan/ascii, cf=yes/no
-proc IsCharPending
+proc   IsCharPending 
+push	cx
+mov	ah , 11h
+int	16h
+mov	bl , ah
+movzx	ax , bl
+pop	cx
+ret	
 	push	cx
 	xor		ax, ax
 	mov		ah, 01h
@@ -394,6 +401,19 @@ proc IsCharPending
 	movzx	ax, cl
 	ret
 endp
+
+
+
+proc   IsCharPending2 
+push	cx
+mov	ah , 11h
+int	16h
+mov	bl , ah
+movzx	ax , bl
+pop	cx
+ret	
+endp
+
 
 
 ;#######################################################################################
