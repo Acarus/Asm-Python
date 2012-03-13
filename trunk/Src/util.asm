@@ -62,18 +62,45 @@ endp
 ; no params
 ; no results
 proc ClearScreen
-	
-	push	ax
-	push	cx
-	mov	ah , 06h
-	xor	cx , cx
-	xor	dx , dx
-	mov	al , 0
-	mov	bh , 0
-	int	19h
-	pop	cx
-	pop	ax
 
+	mov	dh , 0
+	mov	dl , 0
+
+@@label:
+
+	push	cx
+        mov	ah , 02h
+	mov	bh , 0
+	int	10h
+	mov	ah , 09h
+	mov	bh , 0h
+	mov	al , ' '
+	mov	cx , 1h
+	mov	bl , 7
+	int 10h
+	inc	dl
+	push	dx
+
+	mov	cl , 25
+	xor	ax , ax
+	mov	al , dl
+	div	cl
+	pop	dx
+	cmp	ah , 0 
+	je	@@NextLine
+	jmp	@@label
+
+
+@@NextLine:
+
+	inc	dh
+	xor	dl , dl
+	cmp	dh , 40
+	jne	@@label
+
+
+@@exit:
+pop	cx
 ret
 endp
 
