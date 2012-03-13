@@ -34,13 +34,13 @@ endp
 ; al=success/fail
 proc InitVideo
 	
-		push	ax
+		
 		push	cx
     	mov  ah, 0
         mov  al, 1
         int  10h
 		pop	cx
-		pop	ax
+		
 		ret
 endp
 
