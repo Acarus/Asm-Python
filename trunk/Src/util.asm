@@ -380,25 +380,24 @@ endp
 ; no params
 ; ax=scan/ascii, cf=yes/no
 proc   IsCharPending 
-push	cx
-mov	ah , 11h
-int	16h
-mov	bl , ah
-movzx	ax , bl
-pop	cx
-ret	
 	push	cx
 	xor		ax, ax
 	mov		ah, 01h
 	int		16h
 	jnz		@@cfNo
-@@cfNo:
-	clc
+
 @@1:
 	xor		ax, ax
 	mov		ah, 05h
 	int		16h
-	movzx	ax, cl
+	mov		ax , cx
+	stc
+	jmp		@@exit
+
+@@cfNo:
+	clc
+
+@@exit:
 	ret
 endp
 
