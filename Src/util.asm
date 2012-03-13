@@ -392,6 +392,7 @@ proc IsCharPending
 	mov		ah, 05h
 	int		16h
 	movzx	ax, cl
+	ret
 endp
 
 
