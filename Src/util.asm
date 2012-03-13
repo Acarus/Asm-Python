@@ -63,12 +63,13 @@ endp
 ; no results
 proc ClearScreen
 
+	push	cx
 	mov	dh , 0
 	mov	dl , 0
 
 @@label:
 
-	push	cx
+	
         mov	ah , 02h
 	mov	bh , 0
 	int	10h
