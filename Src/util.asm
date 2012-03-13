@@ -33,10 +33,14 @@ endp
 ; no params
 ; al=success/fail
 proc InitVideo
-   
+	
+		push	ax
+		push	cx
     	mov  ah, 0
         mov  al, 1
         int  10h
+		pop	cx
+		pop	ax
 		ret
 endp
 
@@ -58,13 +62,42 @@ endp
 ; no params
 ; no results
 proc ClearScreen
-
+	
+	push	ax
+	push	cx
 	mov	ah , 06h
 	xor	cx , cx
 	xor	dx , dx
 	mov	al , 0
 	mov	bh , 0
 	int	19h
+	pop	cx
+	pop	ax
+
+ret
+endp
+
+proc ReadScreen
+ARG @@screenName:word , @@buffer:word
+push	cx
+push	ax
+mov	ah , 3dh
+mov	dx , @@screenName
+mov	al , 0
+int	21h
+mov	si , ax
+mov	bx , ax
+mov	ah , 3fh
+mov	dx , @@buffer
+mov	cx , 2000
+int	21h
+
+mov	ah , 3eh
+mov	bx , si   
+int	21h
+
+pop 	ax
+pop	cx
 
 ret
 endp
@@ -116,12 +149,16 @@ endp
 ; no results
 proc SetCursorPos
 ARG @@x:byte , @@y:byte 
-	
+
+	push	ax
+	push	cx
 	mov	ah , 02h
 	mov	bh , 0
 	mov	dh , [@@x]
 	mov	dl , [@@y]
 	int	10h
+	pop	cx
+	pop	ax
 	ret
 	
 endp
@@ -147,6 +184,8 @@ endp
 proc OutputChar
 ARG @@x:byte, @@y:byte , @@char:byte , @@color:byte 
 
+	push	cx
+	push	ax
 	mov	ah , 02h
 	mov	bh , 0
 	mov	dh , [@@x]
@@ -158,6 +197,8 @@ ARG @@x:byte, @@y:byte , @@char:byte , @@color:byte
 	mov	cx , 1h
 	mov	bl , [@@color]
 	int 10h
+	pop	ax
+	pop	cx
 	ret
 	
 endp
@@ -176,7 +217,9 @@ endp
 
 proc OutputString
 ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
-                       
+                
+	push	ax
+	push	cx
 	mov	si , @@str
 	cmp	[si] , 0
 	je	@@exit
@@ -231,6 +274,9 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	jmp	@@WriteChar
 
 @@exit:
+
+	pop	cx
+	pop	ax
 	
 ret
 endp
@@ -246,7 +292,9 @@ endp
 
 proc OutputScreenImage
 ARG @@buffer:word
-
+	
+	push	ax
+	push	cx
 	mov	si , @@buffer
 	mov	dh , 0
 	mov	dl , 0
@@ -285,7 +333,10 @@ ARG @@buffer:word
 
 
 @@exit:
-ret
+	pop	cx
+	pop	ax
+
+	ret
 endp
 
 
@@ -308,10 +359,13 @@ endp
 ; ax=scan/ascii
 proc ReadInputChar
 
+	push	ax
+	push	cx
 	xor ax , ax
 	int 16h
 	movzx ax , ah
-
+	pop	cx
+	pop	ax
 ret
 endp
 
