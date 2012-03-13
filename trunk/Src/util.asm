@@ -247,6 +247,7 @@ endp
 ; x, y, zero-terminated-line, color
 ; no results
 
+
 proc OutputString
 ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
                 
@@ -275,7 +276,8 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 
 	inc	si
 	inc	dl
-	cmp  [si] , 1
+	mov	bh , [si]
+	cmp  bh , 1
 	jc	@@exit
 	push dx
 	xor	ax , ax
@@ -312,6 +314,7 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	
 ret
 endp
+
 
 
 
