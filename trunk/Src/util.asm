@@ -398,6 +398,7 @@ proc   IsCharPending
 	clc
 
 @@exit:
+	pop	cx
 	ret
 endp
 
