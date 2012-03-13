@@ -1,7 +1,14 @@
 
 
-screenWidth	EQU	40
+screenWidth		EQU	40
 screenHeight	EQU	25
+KEY_ESC			EQU	01h
+KEY_ENTER		EQU	1ch
+KEY_ALT			EQU	38h
+KEY_UP			EQU	48h
+KEY_DOWN		EQU	50h
+KEY_LEFT		EQU	4bh
+KEY_RIGHT		EQU	4dh
 
 ; exitCode
 ; no results
