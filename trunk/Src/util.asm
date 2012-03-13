@@ -346,7 +346,7 @@ ARG @@buffer:word
 	inc	dl
 	push	dx
 
-	mov	cl , 25
+	mov	cl , screenWidth
 	xor	ax , ax
 	mov	al , dl
 	div	cl
