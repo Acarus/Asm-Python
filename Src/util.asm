@@ -82,7 +82,7 @@ proc ClearScreen
 	inc	dl
 	push	dx
 
-	mov	cl , 25
+	mov	cl , screenWidth
 	xor	ax , ax
 	mov	al , dl
 	div	cl
@@ -96,7 +96,7 @@ proc ClearScreen
 
 	inc	dh
 	xor	dl , dl
-	cmp	dh , 40
+	cmp	dh , screenHeight
 	jne	@@label
 
 
@@ -258,9 +258,9 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	je	@@exit
 	mov	dh , [@@y]
 	mov	dl , [@@x]
-	cmp     dl , 25
+	cmp     dl , screenHeight
 	ja	@@exit
-	cmp	dh , 40
+	cmp	dh , screenWidth
 	ja	@@exit
 	mov	ah , 02h
 	mov	bh , 0
@@ -282,7 +282,7 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	push dx
 	xor	ax , ax
 	mov	al , dl	
-	mov	cl , 25
+	mov	cl , screenHeight
 	div	cl
 	pop	dx
 	cmp	ah , 1
@@ -363,7 +363,7 @@ ARG @@buffer:word
 
 	inc	dh
 	xor	dl , dl
-	cmp	dh , 40
+	cmp	dh , screenHeight
 	jne	@@label
 
 
