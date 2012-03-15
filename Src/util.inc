@@ -18,6 +18,11 @@ global ExitProgram: proc
 ; al=success/fail
 global InitVideo: proc
 
+;no params
+;no results
+
+global GameMenu: proc
+
 
 ; no params
 ; no results
