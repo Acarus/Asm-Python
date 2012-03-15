@@ -282,7 +282,7 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	push dx
 	xor	ax , ax
 	mov	al , dl	
-	mov	cl , screenHeight
+	mov	cl , screenWidth
 	div	cl
 	pop	dx
 	cmp	ah , 1
@@ -313,7 +313,7 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	
 	
 ret
-endp
+endp	
 
 
 
