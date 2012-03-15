@@ -383,38 +383,17 @@ endp
 ; no params
 ; ax=scan/ascii, cf=yes/no
 proc   IsCharPending 
-	push	cx
-	xor		ax, ax
-	mov		ah, 01h
-	int		16h
-	jnz		@@cfNo
-
-@@1:
-	xor		ax, ax
-	mov		ah, 05h
-	int		16h
-	mov		ax , cx
-	stc
-	jmp		@@exit
-
-@@cfNo:
-	clc
-
-@@exit:
-	pop	cx
-	ret
-endp
-
-
-
-proc   IsCharPending2 
 push	cx
 mov	ah , 11h
 int	16h
-mov	bl , ah
-movzx	ax , bl
+jnz	@@yes
+clc
+@@exit:
 pop	cx
 ret	
+@@yes:
+stc
+jmp	@@exit
 endp
 
 
@@ -431,7 +410,6 @@ proc ReadInputChar
 	push	cx
 	xor ax , ax
 	int 16h
-	movzx ax , ah
 	pop	cx
 	
 ret
@@ -466,13 +444,12 @@ mov	[@@active] , al
 
 call	ReadInputChar
                           
-lea	bx , buf
 
-cmp	ax , key_down
+cmp	ah , key_down
 je	@@k_down
-cmp	ax , key_up
+cmp	ah , key_up
 je	@@k_up
-cmp	ax , key_enter
+cmp	ah , key_enter
 je	@@k_enter
 jmp	@@q
 	
