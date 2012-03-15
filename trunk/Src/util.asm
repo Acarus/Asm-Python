@@ -458,6 +458,108 @@ proc DelayExecution
 endp
 
 
+proc	GameMenu
+local	@@active:byte   
+mov	al , 1
+mov	[@@active] , al                                       
+@@q:
+
+call	ReadInputChar
+                          
+lea	bx , buf
+
+cmp	ax , key_down
+je	@@k_down
+cmp	ax , key_up
+je	@@k_up
+cmp	ax , key_enter
+je	@@k_enter
+jmp	@@q
+	
+@@k_up:
+
+	mov	al , [@@active]
+   	cmp	al , 1 
+   	je	@@start_game_u
+	mov	al , [@@active]
+	cmp	al , 2
+	je	@@select_level_u
+	mov	al , [@@active]
+	cmp	al , 3 
+	je	@@exit_game_u
+
+@@start_game_u:
+
+	call	outputchar , 8 , 11 , ' ' , 7 
+	call	outputchar , 12 , 11 , '' , 4
+	mov	[@@active] , 3
+	jmp	@@q	
+
+@@select_level_u:
+
+	
+	call	outputchar , 10 , 11 , ' ' , 7
+	call	outputchar , 8 , 11 , '' , 4
+	mov	[@@active] , 1
+	jmp	@@q
+
+@@exit_game_u:
+
+        call	outputchar , 12 , 11 , ' ' , 7
+	call	outputchar , 10 , 11 , '' , 4
+	mov	[@@active] , 2
+	jmp	@@q
+
+	
+
+@@k_down:
+	
+	mov	al , [@@active]
+   	cmp	al , 1 
+   	je	@@start_game_d
+	mov	al , [@@active]
+	cmp	al , 2
+	je	@@select_level_d
+	mov	al , [@@active]
+	cmp	al , 3 
+	je	@@exit_game_d
+
+@@start_game_d:
+
+	call	outputchar , 8 , 11, ' ' , 7 
+	call	outputchar , 10 , 11 , '' , 4
+	mov	[@@active] , 2
+	jmp	@@q	
+
+@@select_level_d:
+
+	
+	call	outputchar , 10 , 11 , ' ' , 7
+	call	outputchar , 12 , 11 , '' , 4
+	mov	[@@active] , 3
+	jmp	@@q
+
+@@exit_game_d:
+
+        call	outputchar , 12 , 11 , ' ' , 7
+	call	outputchar , 8 , 11 , '' , 4
+	mov	[@@active] , 1
+	jmp	@@q
+
+@@k_enter:
+	
+	mov	al , [@@active]
+	cmp	al , 3
+	je	@@exit
+	jmp	@@q
+
+@@exit:
+         
+call	ClearScreen
+call	ExitProgram
+endp
+
+
 ;#######################################################################################
 ;#######################################################################################
 ;#######################################################################################
