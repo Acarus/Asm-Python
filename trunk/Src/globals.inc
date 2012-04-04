@@ -15,4 +15,16 @@ program_params_len	equ	80h
 program_params_str	equ	81h
 
 
+macro	PUSH_PROC_REGS
+	push	bx
+	push	si
+	push	di
+endm
+
+macro	POP_PROC_REGS
+	pop	di
+	pop	si
+	pop	bx
+endm
+
 ;; All functions preserve: bx, si, di
