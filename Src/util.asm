@@ -2,6 +2,13 @@
 ideal
 include "globals.inc"
 
+
+dataseg
+
+starting_video_mode	db 	?
+starting_cursor_shape	dw	?
+
+
 codeseg
 
 include "utils.inc"
@@ -14,14 +21,11 @@ include "utils.inc"
 ; exitCode
 ; no results
 proc ExitProgram
-	ARG  @@Code:byte        
-	push ax				   
-	mov al,[@@Code]
-	mov ah,4Ch
-	int 21h
-	pop ax
+ARG  @@Code:byte        
+	mov	al,[@@Code]
+	mov	ah,4Ch
+	int	21h
 	ret
-	
 endp
 
 
@@ -34,14 +38,15 @@ endp
 ; al=success/fail
 proc InitVideo
 	
+	PUSH_PROC_REGS
+    	
+	; Save initial video mode into starting_video_mode
+
+	mov	ax, 0001h
+        int	10h
+	POP_PROC_REGS	
 		
-		push	cx
-    	mov  ah, 0
-        mov  al, 1
-        int  10h
-		pop	cx
-		
-		ret
+	ret
 endp
 
 
@@ -52,6 +57,8 @@ endp
 ; no params
 ; no results
 proc ShutdownVideo
+
+	; restore initial video mode from starting_video_mode
 endp
 
 
@@ -63,7 +70,10 @@ endp
 ; no results
 proc ClearScreen
 
-	push	cx
+	PUSH_PROC_REGS
+
+	; !!! This can be implemented with one interrupt call with CX=...
+
 	mov	dh , 0
 	mov	dl , 0
 
@@ -78,19 +88,11 @@ proc ClearScreen
 	mov	al , ' '
 	mov	cx , 1h
 	mov	bl , 7
-	int 10h
+	int 	10h
 	inc	dl
-	push	dx
 
-	mov	cl , screenWidth
-	xor	ax , ax
-	mov	al , dl
-	div	cl
-	pop	dx
-	cmp	ah , 0 
-	je	@@NextLine
-	jmp	@@label
-
+	cmp	dl, screenWidth
+	jne	@@label
 
 @@NextLine:
 
@@ -99,42 +101,36 @@ proc ClearScreen
 	cmp	dh , screenHeight
 	jne	@@label
 
-
-@@exit:
-pop	cx
-ret
+	POP_PROC_REGS
+	ret
 endp
 
 proc ReadScreen
 ARG @@screenName:word , @@buffer:word
-push	cx
 
-mov	ah , 3dh
-mov	dx , @@screenName
-mov	al , 0
-int	21h
-jc	@@error
-mov	si , ax
-mov	bx , ax
-mov	ah , 3fh
-mov	dx , @@buffer
-mov	cx , 2000
-int	21h
-jc	@@error
-mov	ah , 3eh
-mov	bx , si   
-int	21h
-jc	@@error
+	PUSH_PROC_REGS
 
-@@exit:
+	mov	ah , 3dh
+	mov	dx , @@screenName
+	mov	al , 0
+	int	21h
+	jc	@@error
+	mov	si , ax
+	mov	bx , ax
+	mov	ah , 3fh
+	mov	dx , @@buffer
+	mov	cx , screenWidth * screenHeight * 2
+	int	21h
+	jc	@@error
+	mov	ah , 3eh
+	mov	bx , si   
+	int	21h
+	jc	@@error
 
-pop	cx
-clc	
-ret
+@error:
+	POP_PROC_REGS
+	ret
 
-@@error:
-stc
-ret
 endp
 
 
@@ -147,13 +143,15 @@ endp
 ; no params
 ; no results
 proc HideCursor
-	push cx
-	push ax
-	  mov ch,20h
+	PUSH_PROC_REGS
+	
+	; Save cursor shape in starting_cursor_shape
+
+	  mov cx,2000h
 	  mov ah,01h
 	  int 10h
-	pop ax
-	pop cx
+
+	POP_PROC_REGS
 	ret
 endp
 
@@ -165,13 +163,13 @@ endp
 ; no params
 ; no results
 proc ShowCursor
-	push cx
-	push ax
-	  mov cx,0607h
-	  mov ah,01h
-	  int 10h
-	pop ax
-	pop cx
+	PUSH_PROC_REGS
+
+	mov	cx, [starting_cursor_shape]
+	mov	ah,01h
+	int	10h
+
+	POP_PROC_REGS
 	ret
 	
 endp
@@ -185,14 +183,15 @@ endp
 ; no results
 proc SetCursorPos
 ARG @@x:byte , @@y:byte 
+	PUSH_PROC_REGS
 
-	push	cx
 	mov	ah , 02h
 	mov	bh , 0
 	mov	dh , [@@x]
 	mov	dl , [@@y]
 	int	10h
-	pop	cx
+
+	POP_PROC_REGS
 	ret
 	
 endp
@@ -217,8 +216,8 @@ endp
 
 proc OutputChar
 ARG @@x:byte, @@y:byte , @@char:byte , @@color:byte 
+	PUSH_PROC_REGS
 
-	push	cx
 	mov	ah , 02h
 	mov	bh , 0
 	mov	dh , [@@x]
@@ -229,8 +228,9 @@ ARG @@x:byte, @@y:byte , @@char:byte , @@color:byte
 	mov	al , [@@char]
 	mov	cx , 1h
 	mov	bl , [@@color]
-	int 10h
-	pop	cx
+	int	10h
+
+	POP_PROC_REGS
 	ret
 	
 endp
@@ -250,11 +250,13 @@ endp
 
 proc OutputString
 ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
-                
 	
-	push	cx
-	mov	si , @@str
-	cmp	[si] , 0
+	PUSH_PROC_REGS
+
+	; This can be made with a singe callto int 10h fn 1300
+
+	mov	si , [@@str]
+	cmp	[byte ptr si] , 0
 	je	@@exit
 	mov	dh , [@@y]
 	mov	dl , [@@x]
@@ -270,23 +272,17 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	mov	al , [si]
 	mov	cx , 1
 	mov	bl , [@@color]
-	int 10h
+	int 	10h
 	
 @@label:
 
 	inc	si
 	inc	dl
 	mov	bh , [si]
-	cmp  bh , 1
+	cmp  	bh , 1
 	jc	@@exit
-	push dx
-	xor	ax , ax
-	mov	al , dl	
-	mov	cl , screenWidth
-	div	cl
-	pop	dx
-	cmp	ah , 1
-	jc	@@nextLine
+	cmp 	dl, screenWidth
+	je	@@nextLine
 
 @@WriteChar:
 
@@ -298,21 +294,18 @@ ARG	@@x:byte , @@y:byte , @@str:word , @@color:byte
 	mov	al , [si]
 	mov	cx , 1
 	mov	bl , [@@color]
-	int 10h
+	int 	10h
 	jmp	@@label
 	
 @@nextLine:
 
 	xor	dl , dl
-	inc	dh
+	inc	dh     ;  DH may exceed the screen line count!!!
 	jmp	@@WriteChar
 
 @@exit:
-
-	pop	cx
-	
-	
-ret
+	POP_PROC_REGS
+	ret
 endp	
 
 
@@ -327,9 +320,10 @@ endp
 
 proc OutputScreenImage
 ARG @@buffer:word
-	
-	
-	push	cx
+	PUSH_PROC_REGS
+
+	;Can be implemented with one call to int 10 fn 1303	
+
 	mov	si , @@buffer
 	mov	dh , 0
 	mov	dl , 0
@@ -344,20 +338,11 @@ ARG @@buffer:word
 	mov	al , [si]
 	mov	cx , 1h
 	mov	bl , [si + 1]
-	int 10h
+	int	10h
 	add	si , 2
 	inc	dl
-	push	dx
-
-	mov	cl , screenWidth
-	xor	ax , ax
-	mov	al , dl
-	div	cl
-	pop	dx
-	cmp	ah , 0 
-	je	@@NextLine
-	jmp	@@label
-
+	cmp	dl, screenWidth
+	jne	@@label
 
 @@NextLine:
 
@@ -368,9 +353,7 @@ ARG @@buffer:word
 
 
 @@exit:
-	pop	cx
-	
-
+	POP_PROC_REGS
 	ret
 endp
 
