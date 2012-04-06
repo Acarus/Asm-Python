@@ -5,8 +5,10 @@ include "globals.inc"
 
 dataseg
 
-starting_video_mode	db 	?
-starting_cursor_shape	dw	?
+startingVideoMode	db 	?
+startingCursorShape	dw	?
+
+randSeed2		dd	0
 
 
 codeseg
@@ -366,17 +368,20 @@ endp
 ; no params
 ; ax=scan/ascii, cf=yes/no
 proc   IsCharPending 
-push	cx
-mov	ah , 11h
-int	16h
-jnz	@@yes
-clc
-@@exit:
-pop	cx
-ret	
+	PUSH_PROC_REGS
+
+	mov	ah , 11h
+	int	16h
+	jnz	@@yes
+	clc
+	jmp	@@exit
 @@yes:
-stc
-jmp	@@exit
+	stc
+@@exit:
+
+	POP_PROC_REGS
+	ret	
+
 endp
 
 
@@ -388,14 +393,13 @@ endp
 ; no params
 ; ax=scan/ascii
 proc ReadInputChar
+	PUSH_PROC_REGS
 
-	
-	push	cx
 	xor ax , ax
 	int 16h
-	pop	cx
 	
-ret
+	POP_PROC_REGS
+	ret
 endp
 
 ;#######################################################################################
@@ -406,35 +410,51 @@ endp
 ; no results
 proc DelayExecution
 	ARG		@@tick:word 
+	push	es
 
-	push cx
-	push dx
-	mov ah,86h
-	mov dx,[@@tick]
-	int 15h
-	pop dx
-	pop cx
+	mov		ax, 00040 
+	mov		es, ax
+	mov		cx, [@@tick]
+	mov		ax, [es:0006ch]
+
+@@loop:
+	mov		dx, ax
+
+@@wait_change:
+	mov		ax, [es:0006ch]
+	cmp		ax, dx
+	je		@@wait_change
+	sub		cx, 1
+	jnc		@@loop
+
+	pop		es
 	ret
 	
 endp
 
 
+;#######################################################################################
+;#######################################################################################
+;#######################################################################################
+
+; Params itemCount, char *itemPointers[]  ; !!! Support parameters
+; Returns: al=index of menu item
 proc	GameMenu
 local	@@active:byte   
-mov	al , 1
-mov	[@@active] , al                                       
+	mov	al , 1
+	mov	[@@active] , al                                       
 @@q:
 
-call	ReadInputChar
+	call	ReadInputChar
                           
 
-cmp	ah , key_down
-je	@@k_down
-cmp	ah , key_up
-je	@@k_up
-cmp	ah , key_enter
-je	@@k_enter
-jmp	@@q
+	cmp	ah , key_down
+	je	@@k_down
+	cmp	ah , key_up
+	je	@@k_up
+	cmp	ah , key_enter
+	je	@@k_enter
+	jmp	@@q
 	
 @@k_up:
 
@@ -514,11 +534,21 @@ jmp	@@q
 	jmp	@@q
 
 @@exit:
-         
-call	ClearScreen
-call	ExitProgram
+	; !!! -------------- Retrun index of menu item selected
+	ret         
 endp
 
+
+;#######################################################################################
+;#######################################################################################
+;#######################################################################################
+
+; 
+proc InitializeRandomGenerator
+
+; !!! --------------implement
+
+endp
 
 ;#######################################################################################
 ;#######################################################################################
@@ -528,17 +558,38 @@ endp
 ; ax=random
 proc GenerateRandomNumber
 ARG	@@max:word
-push 	cx
-mov	bx , [@@max]
-in 	al,041h
-mov	ah , al
-in	al,042h
-@@label1:
-cmp	ax , bx
-ja	@@dil
-pop	cx
-ret
-@@dil:
-shr	ax , 1
-jmp	@@label1
+
+;        _ptiddata ptd = _getptd();
+;                                                                       
+;        return( ((ptd->_holdrand = ptd->_holdrand * 0x343fd            
+;            + 0x269EC3) >> 16) & 0x7fff );                             
+
+;	srand(0);
+;	((rand() * 2 * max) >> 16)
+
+	push	bx
+	push	si
+	mov	ax, [word ptr randSeed2]
+	mov	si, 43fdh                                              AAAA BBBB
+	mul	si                                                        3 43fd
+	mov	cx, dx
+	mov	bx, ax
+	mov	ax, [word ptr randSeed2+2]
+	mul	si
+	add	cx, ax
+	mov	ax, [word ptr randSeed2]
+	mov	si, 3h
+	mul	si
+	add	cx, ax
+	add	bx, 9ec3h
+	adc	cx, 26h
+	mov	[word ptr randSeed2], bx
+	mov	ax, cx
+	mov	[word ptr randSeed2], cx
+	shl	ax, 1
+	mul	[@@max]
+	mov	ax, dx
+	pop	si
+	pop	bx
+	ret
 endp

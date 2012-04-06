@@ -82,6 +82,10 @@ global ReadInputChar: proc
 global DelayExecution: proc
 
 
+; no params
+; no results
+global InitializeRandomGenerator: proc
+
 ; maximum
 ; ax=random
 global GenerateRandomNumber: proc
