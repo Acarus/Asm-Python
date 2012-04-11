@@ -6,7 +6,7 @@ include "globals.inc"
 dataseg
 
 startingVideoMode	db 	?
-startingCursorShape	dw	?
+startingCursorShapeC	dw	?
 
 randSeed2		dd	0
 
@@ -43,7 +43,9 @@ proc InitVideo
 	PUSH_PROC_REGS
     	
 	; Save initial video mode into starting_video_mode
-
+	mov	ax, 0f00h
+	int	10h
+	mov 	[startingVideoMode],al
 	mov	ax, 0001h
         int	10h
 	POP_PROC_REGS	
@@ -61,6 +63,11 @@ endp
 proc ShutdownVideo
 
 	; restore initial video mode from starting_video_mode
+	PUSH_PROC_REGS
+	mov 	al, [startingVideoMode]
+	mov	ah, 00h
+        int	10h
+	POP_PROC_REGS
 endp
 
 
@@ -88,20 +95,22 @@ proc ClearScreen
 	mov	ah , 09h
 	mov	bh , 0h
 	mov	al , ' '
-	mov	cx , 1h
+			;	mov	cx , 1h
+	mov	cx , screenWidth * screenHeight
 	mov	bl , 7
 	int 	10h
-	inc	dl
-
-	cmp	dl, screenWidth
-	jne	@@label
-
-@@NextLine:
-
-	inc	dh
-	xor	dl , dl
-	cmp	dh , screenHeight
-	jne	@@label
+			;	inc	dl
+			;
+			;	cmp	dl, screenWidth
+			;	jne	@@label
+			;
+			;@@NextLine:
+			;
+			;	inc	dh
+			;	xor	dl , dl
+			;	cmp	dh , screenHeight
+			;	jne	@@label
+	
 
 	POP_PROC_REGS
 	ret
@@ -147,8 +156,12 @@ endp
 proc HideCursor
 	PUSH_PROC_REGS
 	
-	; Save cursor shape in starting_cursor_shape
+	; Save cursor shape in starting_cursor_shape(C/D)
 
+	  mov ah,03h
+	  mov bh,00h
+	  int 10h
+	  mov [startingCursorShape],cx
 	  mov cx,2000h
 	  mov ah,01h
 	  int 10h
@@ -167,9 +180,9 @@ endp
 proc ShowCursor
 	PUSH_PROC_REGS
 
-	mov	cx, [starting_cursor_shape]
-	mov	ah,01h
-	int	10h
+	  mov cx,[startingCursorShape]
+	  mov ah,01h
+	  int 10h
 
 	POP_PROC_REGS
 	ret
@@ -546,7 +559,13 @@ endp
 ; 
 proc InitializeRandomGenerator
 
-; !!! --------------implement
+	push	es
+	mov		es, 0040h
+	mov		ax, [es:006ch]
+	mov		dx, [es:006eh]
+	mov		[word ptr randSeed2 + 0], ax
+	mov		[word ptr randSeed2 + 2], dx
+	pop		es
 
 endp
 
