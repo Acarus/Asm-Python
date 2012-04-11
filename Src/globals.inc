@@ -27,4 +27,17 @@ macro	POP_PROC_REGS
 	pop	bx
 endm
 
+
+
+stuct ScreenCoord
+coordX		db 	?
+coordY		db 	?
+end
+
+struc ScreenChar
+charCode	db 	?
+charAttr	db	?
+end
+
+
 ;; All functions preserve: bx, si, di
