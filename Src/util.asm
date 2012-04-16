@@ -62,12 +62,14 @@ endp
 ; no results
 proc ShutdownVideo
 
+
 	; restore initial video mode from starting_video_mode
 	PUSH_PROC_REGS
 	mov 	al, [startingVideoMode]
 	mov	ah, 00h
         int	10h
 	POP_PROC_REGS
+	ret
 endp
 
 
@@ -235,8 +237,8 @@ ARG @@x:byte, @@y:byte , @@char:byte , @@color:byte
 
 	mov	ah , 02h
 	mov	bh , 0
-	mov	dh , [@@x]
-	mov	dl , [@@y]
+	mov	dh , [@@y]
+	mov	dl , [@@x]
 	int	10h
 	mov	ah , 09h
 	mov	bh , 0h
@@ -453,103 +455,116 @@ endp
 ; Params itemCount, char *itemPointers[]  ; !!! Support parameters
 ; Returns: al=index of menu item
 proc	GameMenu
+ARG		@@argc:word , @@argv:word
 local	@@active:byte   
-	mov	al , 1
-	mov	[@@active] , al                                       
+mov	bx , [@@argv]
+mov	dx , [@@argc]
+xor	di , di
+xor si , si
+mov	ax , bx
+mov	cx , 8
+@@someLabel1:
+
+	push	si
+	push	bx
+	push	dx
+	call	outputString , 8 , cx , ax , 7
+	pop	dx
+	pop	bx
+	pop	si
+	
+	@@for:
+	mov	ah , [bx + si]
+	inc	si
+	cmp	ah , 0
+	jne	@@for
+	mov	ax , bx
+	add	ax , si
+	dec	ax
+	add	cx , 2
+	dec	dx
+	cmp	dx , 0
+	jne	@@someLabel1
+	
+	
+mov	al , 1
+mov	[@@active] , al        
+
+call	outputChar , 6 , 8 , 16 , 5
+
 @@q:
 
-	call	ReadInputChar
-                          
+call	ReadInputChar
+cmp		ah , KEY_UP
+je		@@k_up	
+cmp		ah , KEY_DOWN
+je		@@k_down
+cmp		ah , KEY_ENTER
+je		@@k_enter
+jmp		@@q
 
-	cmp	ah , key_down
-	je	@@k_down
-	cmp	ah , key_up
-	je	@@k_up
-	cmp	ah , key_enter
-	je	@@k_enter
-	jmp	@@q
-	
 @@k_up:
 
-	mov	al , [@@active]
-   	cmp	al , 1 
-   	je	@@start_game_u
-	mov	al , [@@active]
-	cmp	al , 2
-	je	@@select_level_u
-	mov	al , [@@active]
-	cmp	al , 3 
-	je	@@exit_game_u
+mov	al , [@@active]
+cmp	al , 1
+je	@@k_up_2
+movzx	cx , al
+shl	cx , 1
+add	cx, 4
+call	outputChar , 6 , cx , 16 , 5
+add cx , 2
+call	outputChar , 6 , cx , ' ' , 7	
+mov	al , [@@active]
+dec	al
+mov	[@@active] , al
+jmp	@@q
 
-@@start_game_u:
 
-	call	outputchar , 8 , 11 , ' ' , 7 
-	call	outputchar , 12 , 11 , '' , 4
-	mov	[@@active] , 3
-	jmp	@@q	
+@@k_up_2:
 
-@@select_level_u:
-
-	
-	call	outputchar , 10 , 11 , ' ' , 7
-	call	outputchar , 8 , 11 , '' , 4
-	mov	[@@active] , 1
-	jmp	@@q
-
-@@exit_game_u:
-
-        call	outputchar , 12 , 11 , ' ' , 7
-	call	outputchar , 10 , 11 , '' , 4
-	mov	[@@active] , 2
-	jmp	@@q
-
-	
+mov	ax , [@@argc]
+mov	[@@active] , al
+call	outputChar , 6 , 8 , ' ' , 7
+mov	ax , [@@argc]
+shl	ax , 1
+add	ax , 6
+call	outputChar , 6 , ax , 16 , 5
+jmp	@@q
 
 @@k_down:
-	
-	mov	al , [@@active]
-   	cmp	al , 1 
-   	je	@@start_game_d
-	mov	al , [@@active]
-	cmp	al , 2
-	je	@@select_level_d
-	mov	al , [@@active]
-	cmp	al , 3 
-	je	@@exit_game_d
+xor	bx , bx
+mov	bx , [@@argc]
+mov	al , [@@active]
+cmp	bl , al
+je 	@@k_down_2
+mov	al , [@@active]
+inc	al
+mov	[@@active] , al
+dec	al
+movzx	cx , al 
+shl	cx , 1
+add	cx , 6
+call	outputChar , 6 , cx , ' ' , 7
+add	cx , 2
+call	outputChar , 6 , cx , 16 , 5
+jmp		@@q
 
-@@start_game_d:
-
-	call	outputchar , 8 , 11, ' ' , 7 
-	call	outputchar , 10 , 11 , '' , 4
-	mov	[@@active] , 2
-	jmp	@@q	
-
-@@select_level_d:
-
-	
-	call	outputchar , 10 , 11 , ' ' , 7
-	call	outputchar , 12 , 11 , '' , 4
-	mov	[@@active] , 3
-	jmp	@@q
-
-@@exit_game_d:
-
-        call	outputchar , 12 , 11 , ' ' , 7
-	call	outputchar , 8 , 11 , '' , 4
-	mov	[@@active] , 1
-	jmp	@@q
+@@k_down_2:
+mov	al , 1
+mov	[@@active] , al
+call	outputChar , 6 , 8 , 16 , 5
+mov	ax , [@@argc]
+shl	ax , 1
+add	ax , 6
+call	outputChar , 6 , ax , ' ' , 7
+jmp	@@q
 
 @@k_enter:
-	
-	mov	al , [@@active]
-	cmp	al , 3
-	je	@@exit
-	jmp	@@q
-
-@@exit:
-	; !!! -------------- Retrun index of menu item selected
-	ret         
+call	ClearScreen
+mov	al , [@@active]         
+ret
 endp
+
 
 
 ;#######################################################################################
@@ -589,8 +604,8 @@ ARG	@@max:word
 	push	bx
 	push	si
 	mov	ax, [word ptr randSeed2]
-	mov	si, 43fdh                                              AAAA BBBB
-	mul	si                                                        3 43fd
+	mov	si, 43fdh                                             
+	mul	si                                                        
 	mov	cx, dx
 	mov	bx, ax
 	mov	ax, [word ptr randSeed2+2]
