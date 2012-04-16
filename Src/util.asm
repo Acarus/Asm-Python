@@ -391,6 +391,8 @@ proc   IsCharPending
 	clc
 	jmp	@@exit
 @@yes:
+	mov	ah , 10h
+	int	16h
 	stc
 @@exit:
 
