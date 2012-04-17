@@ -28,6 +28,8 @@ global GameMenu: proc
 ; no results
 global ShutdownVideo: proc
 
+;Program sleep some time in 10E-2 seconds
+global	Sleep: proc
 
 ; no params
 ; no results
