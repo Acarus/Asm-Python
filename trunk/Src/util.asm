@@ -30,6 +30,35 @@ ARG  @@Code:byte
 	ret
 endp
 
+;#######################################################################################
+;#######################################################################################
+;#######################################################################################
+proc	Sleep
+ARG  @@time:word
+local	@@seconds:byte , @@hundseconds:byte
+mov		ah , 2ch
+int		21h
+mov		ax , [@@time]
+mov		ch , 100
+div		ch
+add		dl , ah
+add		dh , al
+mov		[@@seconds] , dh
+mov		[@@hundseconds] , dl
+mov		bh , [@@seconds]
+mov		bl , [@@hundseconds]
+@@cicl:
+push	bx
+mov		ah , 2ch
+int		21h
+pop		bx
+cmp		dh , bh
+ja		@@exit
+cmp		dl , bl
+jb		@@cicl
+@@exit:
+ret
+endp
 
 ;asm
 ;#######################################################################################
