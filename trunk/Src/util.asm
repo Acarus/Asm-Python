@@ -6,14 +6,14 @@ include "globals.inc"
 dataseg
 
 startingVideoMode	db 	?
-startingCursorShapeC	dw	?
+startingCursorShape	dw	?
 
 randSeed2		dd	0
 
 
 codeseg
 
-include "utils.inc"
+include "util.inc"
 
 
 ;#######################################################################################
@@ -153,14 +153,14 @@ ARG @@screenName:word , @@buffer:word
 	PUSH_PROC_REGS
 
 	mov	ah , 3dh
-	mov	dx , @@screenName
+	mov	dx , [@@screenName]
 	mov	al , 0
 	int	21h
 	jc	@@error
 	mov	si , ax
 	mov	bx , ax
 	mov	ah , 3fh
-	mov	dx , @@buffer
+	mov	dx , [@@buffer]
 	mov	cx , screenWidth * screenHeight * 2
 	int	21h
 	jc	@@error
@@ -169,7 +169,7 @@ ARG @@screenName:word , @@buffer:word
 	int	21h
 	jc	@@error
 
-@error:
+@@error:
 	POP_PROC_REGS
 	ret
 
@@ -370,7 +370,7 @@ ARG @@buffer:word
 
 	;Can be implemented with one call to int 10 fn 1303	
 
-	mov	si , @@buffer
+	mov	si , [@@buffer]
 	mov	dh , 0
 	mov	dl , 0
 
@@ -605,14 +605,15 @@ endp
 ; 
 proc InitializeRandomGenerator
 
-	push	es
-	mov		es, 0040h
+	push		es
+	mov		ax, 0040h
+	mov		es, ax
 	mov		ax, [es:006ch]
 	mov		dx, [es:006eh]
 	mov		[word ptr randSeed2 + 0], ax
 	mov		[word ptr randSeed2 + 2], dx
 	pop		es
-
+	ret
 endp
 
 ;#######################################################################################
@@ -658,3 +659,6 @@ ARG	@@max:word
 	pop	bx
 	ret
 endp
+
+
+end
