@@ -29,15 +29,15 @@ endm
 
 
 
-stuct ScreenCoord
+struc ScreenCoord
 coordX		db 	?
 coordY		db 	?
-end
+ends
 
 struc ScreenChar
 charCode	db 	?
 charAttr	db	?
-end
+ends
 
 
 ;; All functions preserve: bx, si, di
