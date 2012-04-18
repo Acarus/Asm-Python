@@ -16,6 +16,71 @@ codeseg
 include "util.inc"
 
 
+
+
+;#######################################################################################
+;#######################################################################################
+;#######################################################################################
+
+proc	intToString
+ARG	@@number:word , @@mass:word
+	mov	ax , [@@number]
+	mov	di , 0
+	mov	bx , 10
+
+@@first_step:
+
+	xor	dx , dx
+	div	bx
+	add	dl , 30h
+	mov	[byte ptr @@mass + di],dl
+	inc	di
+	cmp	ax , 1
+	jc	@@next_step
+	jmp	@@first_step
+
+@@next_step:
+
+	cmp	di , 1
+        jz	@@oneParam
+	push	di
+	mov	cx , di
+	shr	cx , 1
+	mov	si , 0
+	dec     di
+
+	
+
+@@for:
+	mov	bl , [byte ptr @@mass + si]
+	mov	bh , [byte ptr @@mass + di]
+	mov	[byte ptr @@mass + si] , bh
+	mov	[byte ptr @@mass + di] , bl
+	dec	di
+	inc	si
+	cmp	cx , si
+	je	@@for
+	jmp	@@moreParam
+
+@@moreParam:
+
+	pop	di
+	mov	[byte ptr @@mass + di] , '$'
+	jmp	@@exit
+
+
+ @@oneParam:
+	mov	[byte ptr @@mass + di] , '$'
+
+
+ @@exit:
+
+		ret
+	
+endp
+
+
+
 ;#######################################################################################
 ;#######################################################################################
 ;#######################################################################################

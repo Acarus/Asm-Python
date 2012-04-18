@@ -23,6 +23,7 @@ global InitVideo: proc
 
 global GameMenu: proc
 
+global intToString: proc
 
 ; no params
 ; no results
