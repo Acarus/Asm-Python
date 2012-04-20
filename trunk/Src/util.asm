@@ -609,6 +609,7 @@ local	@@active:byte
 
 SELECT_CHAR = 16
 MENU_X = 8
+SELECT_X = MENU_X-2
 	mov	bx , [@@argv]
 	mov	dx , [@@argc]
 	xor	di , di
@@ -640,7 +641,7 @@ MENU_X = 8
 	mov	[@@active] , al        
 	
 	mov	ax , [@@spos]
-	call	outputChar , MENU_X-2 , ax , SELECT_CHAR , 5
+	call	outputChar , SELECT_X, ax , SELECT_CHAR , 5
 	
 @@q:
 	
@@ -665,9 +666,11 @@ MENU_X = 8
 	mov	ax , [@@spos]
 	sub	ax , 4
 	add	cx , ax	
-	call	outputChar , 6 , cx , 16 , 5
-	add cx , 2
-	call	outputChar , 6 , cx , ' ' , 7	
+	push	cx
+	call	outputChar , SELECT_X , cx , SELECT_CHAR , 5
+	pop	cx
+	add 	cx , 2
+	call	outputChar , SELECT_X , cx , ' ' , 7	
 	mov	al , [@@active]
 	dec	al
 	mov	[@@active] , al
@@ -675,18 +678,16 @@ MENU_X = 8
 	
 	
 @@k_up_2:
-	
-	mov	ax , [@@argc]
-	mov	[@@active] , al
-	shl	cx , 1
 	mov	ax , [@@spos]
-	sub	ax , 4
-	add	cx , ax	
-	call	outputChar , 6 , 8 , ' ' , 7
-	mov	ax , [@@argc]
-	shl	ax , 1
-	add	ax , 6
-	call	outputChar , 6 , ax , 16 , 5
+	call	outputChar , SELECT_X , ax , ' ' , 7
+
+	mov	cx , [@@argc]
+	mov	[@@active] , cl
+
+	dec	cx	
+	shl	cx , 1
+	add	cx , [@@spos]
+	call	outputChar , SELECT_X , cx , SELECT_CHAR , 5
 	jmp	@@q
 	
 @@k_down:

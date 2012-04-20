@@ -840,6 +840,7 @@ start:
 
 @@exit:
 	call	ClearScreen
+	call	ShutdownVideo
 	call	ExitProgram
 
 
