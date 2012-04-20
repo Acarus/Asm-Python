@@ -16,7 +16,57 @@ codeseg
 include "util.inc"
 
 
+;#######################################################################################
+;#######################################################################################
+;#######################################################################################
 
+
+proc StringToInt
+arg 	@@str:word
+local   @@sum:word
+	push	si
+	push	di
+	push	bx
+	mov	bx , [@@str]
+	xor	si , si
+	xor	cx , cx
+@@loop1:
+	mov	ah , [bx + si]
+	cmp	ah , 0
+	je	@@next_step
+	inc	cx
+	inc	si
+	jmp	@@loop1
+@@next_step:
+	mov	si , cx
+	dec	si
+	mov	di , 1
+	xor	ax , ax
+	mov	[@@sum] , ax
+	
+		
+@@loop2:
+	push	cx
+	movzx	ax , [bx + si]
+	sub	ax , 48
+	mul	di
+	mov	dx , [@@sum]
+	add	ax , dx
+	mov	[@@sum] , ax
+	mov	ax , di
+	mov	di , 10
+	mul	di
+	mov	di , ax
+	dec	si
+	pop	cx
+	loop	@@loop2
+	mov	ax , [@@sum]
+	pop	bx
+	pop	di
+	pop	si
+		ret
+			
+endp
 
 ;#######################################################################################
 ;#######################################################################################
@@ -24,6 +74,9 @@ include "util.inc"
 
 proc	intToString
 ARG	@@number:word , @@mass:word
+	push	si
+	push	di
+	push	bx
 	mov	ax , [@@number]
 	mov	di , 0
 	mov	bx , 10
@@ -74,8 +127,10 @@ ARG	@@number:word , @@mass:word
 
 
  @@exit:
-
-		ret
+	pop	bx
+	pop	di
+	pop	si
+	ret
 	
 endp
 
@@ -548,117 +603,128 @@ endp
 ;#######################################################################################
 ;#######################################################################################
 
-; Params itemCount, char *itemPointers[]  ; !!! Support parameters
-; Returns: al=index of menu item
 proc	GameMenu
-ARG		@@argc:word , @@argv:word
-local	@@active:byte   
-mov	bx , [@@argv]
-mov	dx , [@@argc]
-xor	di , di
-xor si , si
-mov	ax , bx
-mov	cx , 8
+ARG		@@argc:word , @@argv:word , @@spos:word
+local	@@active:byte
+
+SELECT_CHAR = 16
+MENU_X = 8
+	mov	bx , [@@argv]
+	mov	dx , [@@argc]
+	xor	di , di
+	xor 	si , si
+	mov	ax , bx
+	mov	cx , [@@spos]
 @@someLabel1:
 
-	push	si
-	push	bx
+	push	cx
 	push	dx
-	call	outputString , 8 , cx , ax , 7
+	call	outputString , MENU_X , cx , ax , 7
 	pop	dx
-	pop	bx
-	pop	si
+	pop	cx
 	
-	@@for:
+@@for:
 	mov	ah , [bx + si]
 	inc	si
 	cmp	ah , 0
 	jne	@@for
 	mov	ax , bx
 	add	ax , si
-	dec	ax
 	add	cx , 2
 	dec	dx
 	cmp	dx , 0
 	jne	@@someLabel1
 	
 	
-mov	al , 1
-mov	[@@active] , al        
-
-call	outputChar , 6 , 8 , 16 , 5
-
+	mov	al , 1
+	mov	[@@active] , al        
+	
+	mov	ax , [@@spos]
+	call	outputChar , MENU_X-2 , ax , SELECT_CHAR , 5
+	
 @@q:
-
-call	ReadInputChar
-cmp		ah , KEY_UP
-je		@@k_up	
-cmp		ah , KEY_DOWN
-je		@@k_down
-cmp		ah , KEY_ENTER
-je		@@k_enter
-jmp		@@q
-
+	
+	call	ReadInputChar
+	cmp	ah , KEY_UP
+	je	@@k_up	
+	cmp	ah , KEY_DOWN
+	je	@@k_down
+	cmp	ah , KEY_ENTER
+	je	@@k_enter
+	cmp	ah , KEY_ESC
+	je	@@back
+	jmp	@@q
+	
 @@k_up:
-
-mov	al , [@@active]
-cmp	al , 1
-je	@@k_up_2
-movzx	cx , al
-shl	cx , 1
-add	cx, 4
-call	outputChar , 6 , cx , 16 , 5
-add cx , 2
-call	outputChar , 6 , cx , ' ' , 7	
-mov	al , [@@active]
-dec	al
-mov	[@@active] , al
-jmp	@@q
-
-
+	
+	mov	al , [@@active]
+	cmp	al , 1
+	je	@@k_up_2
+	movzx	cx , al
+	shl	cx , 1
+	mov	ax , [@@spos]
+	sub	ax , 4
+	add	cx , ax	
+	call	outputChar , 6 , cx , 16 , 5
+	add cx , 2
+	call	outputChar , 6 , cx , ' ' , 7	
+	mov	al , [@@active]
+	dec	al
+	mov	[@@active] , al
+	jmp	@@q
+	
+	
 @@k_up_2:
-
-mov	ax , [@@argc]
-mov	[@@active] , al
-call	outputChar , 6 , 8 , ' ' , 7
-mov	ax , [@@argc]
-shl	ax , 1
-add	ax , 6
-call	outputChar , 6 , ax , 16 , 5
-jmp	@@q
-
+	
+	mov	ax , [@@argc]
+	mov	[@@active] , al
+	shl	cx , 1
+	mov	ax , [@@spos]
+	sub	ax , 4
+	add	cx , ax	
+	call	outputChar , 6 , 8 , ' ' , 7
+	mov	ax , [@@argc]
+	shl	ax , 1
+	add	ax , 6
+	call	outputChar , 6 , ax , 16 , 5
+	jmp	@@q
+	
 @@k_down:
-xor	bx , bx
-mov	bx , [@@argc]
-mov	al , [@@active]
-cmp	bl , al
-je 	@@k_down_2
-mov	al , [@@active]
-inc	al
-mov	[@@active] , al
-dec	al
-movzx	cx , al 
-shl	cx , 1
-add	cx , 6
-call	outputChar , 6 , cx , ' ' , 7
-add	cx , 2
-call	outputChar , 6 , cx , 16 , 5
-jmp		@@q
-
+	xor	bx , bx
+	mov	bx , [@@argc]
+	mov	al , [@@active]
+	cmp	bl , al
+	je 	@@k_down_2
+	mov	al , [@@active]
+	inc	al
+	mov	[@@active] , al
+	dec	al
+	movzx	cx , al 
+	shl	cx , 1
+	add	cx , 6
+	call	outputChar , 6 , cx , ' ' , 7
+	add	cx , 2
+	call	outputChar , 6 , cx , 16 , 5
+	jmp		@@q
+	
 @@k_down_2:
-mov	al , 1
-mov	[@@active] , al
-call	outputChar , 6 , 8 , 16 , 5
-mov	ax , [@@argc]
-shl	ax , 1
-add	ax , 6
-call	outputChar , 6 , ax , ' ' , 7
-jmp	@@q
-
+	mov	al , 1
+	mov	[@@active] , al
+	call	outputChar , 6 , 8 , 16 , 5
+	mov	ax , [@@argc]
+	shl	ax , 1
+	add	ax , 6
+	call	outputChar , 6 , ax , ' ' , 7
+	jmp	@@q
+	
 @@k_enter:
-call	ClearScreen
-mov	al , [@@active]         
-ret
+	call	ClearScreen
+	xor	ax , ax
+	mov	al , [@@active]  
+	ret
+	@@back:
+	mov	ax , 0ffffh     
+	ret
 endp
 
 

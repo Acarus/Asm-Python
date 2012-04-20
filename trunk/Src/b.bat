@@ -6,7 +6,7 @@ if errorlevel 1 goto exit
 tasm -m2 -v util.asm
 if errorlevel 1 goto exit
 
-tlink main.obj util.obj
+tlink -v main.obj util.obj
 if errorlevel 1 goto exit
 
 echo Compiled successfully

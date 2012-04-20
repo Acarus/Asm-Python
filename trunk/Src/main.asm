@@ -25,6 +25,7 @@ BODY_SYMBOL	EQU	'O'
 BODY_ATTR	EQU	7
 
 WALL_SYMBOL	EQU	'#'
+WALL		EQU 	WALL_SYMBOL
 
 EMPTY_SYMBOL	EQU	' '
 EMPTY_ATTR	EQU	7
@@ -54,33 +55,34 @@ tailIndex	dw	0		; Index of tail in array
 
 motionDelta	ScreenCoord <0, -1>	; Direction of motion
 
-gover1          db 'Game Over',0
-gover2          db 'Press enter to restart',0
-gover3          db 'Press escape to @@exit the menu',0
-targ            db      0
-msg                     db      'You eated the TARGET_SYMBOL !',0
-randSeed2 dd    0
-paramString db 'Start Game',0,'Option',0,'Select level',0,'@@exit',0
-levelName       db      'levels\\first.lv',0
-buf     db       2000 dup (' ') , '$'
-python  db      2000 dup (?)
-fileName db     'menu.sc',0
+editFile	db	'edit.sc',0
+max			db  3		
+inputBuf	db	5 dup (?)
+testf		db  '125',0
+sX			db 'Enter start x :',0
+sy			db 'Enter start y :',0
+enterSp		db	'Enter Speed : ',0
+showSize	db 'Size:   ' , 0
+info		db	'LEVEL EDITOR (c) 2012 LMPL',0
+enterX		db	'Enter start x pos :',0
+enterY		db 'Enter start y pos :',0
+enterS		db	'Enter level speed :',0
+gover1		db 'Game Over',0	
+gover2		db 'Press enter to restart',0	
+gover3		db 'Press escape to exit the menu',0	
+targ		db	0
+msg			db	'You eated the TARGET_CHAR !',0
+randSeed2 dd	0
+paramString db 'Start Game',0,'Select level',0,'Edit level',0,'Exit',0
+levelName	db	'levels\\level1.lv',0
+levelInc	db	'levels\\level1.inc',0
+levelLIsCharPendingt	db	'Level 1',0,'Level 2',0,'Level 3',0,'Level 4',0
+buf	db	 2 * screenWidth * screenHeight dup (' ') , '$'      
+python	db	2 * screenWidth * screenHeight dup (?)
+fileName db	'menu.sc',0
+help	db	3 dup (?)
 
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-udataseg
-
-rabbitCoords	ScreenCoord ?
-
-pythonCoords	ScreenCoord (screenWidth * screenHeight) dup (?)
-
-; Contents of screen with attributes
-screenBuffer	db	2 * screenWidth * screenHeight dup (?)
-
-
-levelDelays	dw	LEVEL_COUNT dup (?)
 
 
 
@@ -414,6 +416,375 @@ endp
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+proc	SelectLevel
+	xor	si , si
+	mov	cx , size buf
+@@loop1:
+	mov	[buf + si] , 20h
+	mov	[buf + si + 1] , 7
+	add	si , 2
+	loop	@@loop1
+render
+	call	GameMenu , 4 , offset levelLIsCharPendingt , 8
+	cmp	ax , 1
+	je	@@1
+	cmp	ax , 2
+	je	@@2
+	cmp	ax , 3
+	je	@@3
+	mov	ah , 34h
+	mov	[levelName + 13] , ah
+	mov	[levelInc + 13] , ah
+	jmp	@@exit
+@@1:
+	mov	ah , 31h
+	mov	[levelName + 13] , ah
+	mov	[levelInc + 13] , ah
+	jmp	@@exit
+@@2:
+	mov	ah , 32h
+	mov	[levelName + 13] , ah
+	mov	[levelInc + 13] , ah
+	jmp	@@exit
+@@3:
+	mov	ah , 33h
+	mov	[levelName + 13] , ah
+	mov	[levelInc + 13] , ah
+@@exit:
+	
+	ret
+endp
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+proc EditLevel
+	local @@pos:word , @@color:byte , @@wall_char:byte , @@speed:byte , @@cords:word
+	call    ReadScreen  , offset fileName , offset buf 
+	render
+	call	GameMenu , 4 , offset levelLIsCharPendingt , 8
+	cmp		ax , 0ffffh
+	je		@@exit
+	cmp		ax , 1
+	je		@@1
+	cmp		ax , 2
+	je		@@2
+	cmp		ax , 3
+	je		@@3
+	mov		ah , 34h
+	mov		[levelName + 13] , ah
+	mov		[levelInc + 13] , ah
+	jmp		@@next
+	@@1:
+	mov		ah , 31h
+	mov		[levelName + 13] , ah
+	mov		[levelInc + 13] , ah
+	jmp		@@next
+	@@2:
+	mov		ah , 32h
+	mov		[levelName + 13] , ah
+	mov		[levelInc + 13] , ah
+	jmp		@@next
+	@@3:
+	mov		ah , 33h
+	mov		[levelName + 13] , ah
+	mov		[levelInc + 13] , ah
+	@@next:
+	call    ReadScreen  , offset editFile , offset buf 
+	render
+	call	outputString , 0,  0 , offset enterSp , 4
+	mov cx,03h 
+	mov ah,01h
+	int 10h
+	call	SetCursorPos , 14 , 0
+	mov		ah , 0ah
+	lea		dx , [max]
+	int		21h
+	movzx	si , [max + 1]
+	mov		[inputBuf + si + 1] , 0	
+	call	StringToInt , offset inputBuf + 1
+	mov		bx , 100
+	sub		bx , ax
+	mov		[@@speed] , bl
+	mov		ax , 1015h
+	mov		[@@cords] , ax
+	
+	
+	
+	
+
+	call    ReadScreen  , offset levelName , offset buf
+	render
+	call	outputString , 0,  0 , offset Info , 4
+	xor		ax ,ax
+	mov		ah , 1
+	mov		[@@pos] , ax
+	mov		ah , 1
+	mov		[@@color] , ah
+	mov		ah , WALL
+	mov		[@@wall_char] , ah
+	mov		ax , [@@cords]
+	movzx	bx , al
+	movzx	cx , ah
+	call	outputChar , bx , cx , 249 , 3
+	mov cx,1fh 
+	mov ah,01h
+	int 10h
+	call	SetCursorPos , 0 , 1
+	
+@@for:
+	call	ReadInputChar
+	cmp		ah , KEY_UP
+	je		@@up
+	cmp		ah , KEY_DOWN
+	je		@@down
+	cmp		ah , KEY_LEFT
+	je		@@left
+	cmp		ah , KEY_RIGHT
+	je		@@right
+	cmp		ah , KEY_ESC
+	je		@@exit
+	cmp		ah , KEY_F2
+	je		@@wall
+	cmp		ah , KEY_F4
+	je		@@save
+	cmp		ah , KEY_F3
+	je		@@change_color
+	cmp		ah , KEY_CLEAR
+	je		@@delete
+	cmp		ah , KEY_F6
+	je		@@add_wall_char
+	cmp		ah , KEY_F5
+	je		@@sub_wall_char
+	cmp		ah , KEY_F7
+	je		@@clear_screen
+	cmp		ah , KEY_F8
+	je		@@set_start_cords
+	jmp		@@for
+	
+	@@set_start_cords:
+	mov		ax , [@@cords]
+	movzx	bx , al
+	movzx	cx , ah
+	call	outputChar , bx , cx , 20h , 7
+	mov		ax , [@@pos]
+	mov		[@@cords] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	outputChar , bx , cx , 249 , 3
+	jmp		@@for
+	
+	@@clear_screen:
+	mov		cx , 1000
+	xor		si , si
+	@@some_loop_1:
+	mov		[buf + si] , 20h
+	mov		[buf + si + 1] , 7
+	add		si , 2 
+	loop	@@some_loop_1
+	render
+	call	outputString , 0,  0 , offset Info , 4
+	mov		ax , [@@cords]
+	movzx	bx , al
+	movzx	cx , ah
+	call	outputChar , bx , cx , 249 , 3
+	mov		ax , [@@pos]
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx ,cx 
+	jmp		@@for
+	
+	@@sub_wall_char:
+	mov		ah , [@@wall_char]
+	dec		ah
+	mov		[@@wall_char] , ah
+	jmp		@@for
+	
+	@@add_wall_char:
+	mov		ah , [@@wall_char]
+	inc		ah
+	mov		[@@wall_char] , ah
+	jmp		@@for
+	
+	@@delete:
+	mov		ax , [@@pos]
+	movzx	bx , al
+	movzx	cx , ah
+	call	outputChar , bx , cx , 20h , 7
+	mov		ax , [@@pos]
+	movzx	bx , al
+	movzx	cx , ah
+	inc		cx
+	inc		bx
+	call	get_pos , bx , cx
+	mov		[buf + si] , 20h
+	mov		[buf + si + 1] , 7
+	jmp		@@for
+	
+	@@change_color:
+	movzx	ax ,  [@@color]
+	inc		ax
+	cmp		ax , 7
+	ja		@@d
+	mov		[@@color] , al
+	jmp		@@for
+	@@d:
+	mov		ah , 1
+	mov		[@@color] , ah
+	jmp		@@for
+
+	@@wall:	
+	mov		ax , [@@pos]
+	movzx	bx , al
+	movzx	cx , ah
+	movzx	ax , [@@color]
+	movzx	di , [@@wall_char]
+	call	outputChar , bx , cx , di , ax
+	mov		ax , [@@pos]
+	movzx	bx , al
+	movzx	cx , ah
+	inc		bx
+	inc		cx
+	call	get_pos , bx , cx
+	mov		dl , [@@wall_char]
+	mov		[buf + si] , dl	
+	mov		ah , [@@color]
+	mov		[buf + si + 1] , ah
+	jmp		@@for
+	
+	@@save:
+
+	mov		ah , 3dh
+	mov		dx , offset levelName
+	mov		al , 1
+	int		21h
+	jc		@@exit
+	mov		si , ax
+	push	si
+	mov		bx , ax
+	mov		ah , 40h
+	mov		dx , offset buf
+	mov		cx , 2000
+	int		21h
+	jc		@@exit
+	mov		ah , 3eh
+	pop		bx   
+	int		21h
+	mov		ax , [@@cords]
+	mov		[inputBuf] , ah
+	mov		[inputBuf + 1] , al
+	mov		ah , [@@speed]
+	mov		[inputBuf + 2] , ah
+	mov		ah , 3dh
+	mov		dx , offset levelInc
+	mov		al , 1
+	int		21h
+	jc		@@exit
+	mov		si , ax
+	push	si
+	mov		bx , ax
+	mov		ah , 40h
+	mov		dx , offset inputBuf
+	mov		cx , 3
+	int		21h
+	jc		@@exit
+	mov		ah , 3eh
+	pop		bx   
+	int		21h
+	jmp		@@exit
+	
+	@@up:
+	mov		ax , [@@pos]
+	dec		ah
+	cmp		ah , 0
+	je		@@up_2
+	mov		[@@pos] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	@@up_2:
+	mov		ah , screenHeight
+	mov		[@@pos] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	
+	
+	@@down:
+	mov		ax , [@@pos]
+	inc		ah
+	cmp		ah , screenHeight
+	je		@@down_2
+	mov		[@@pos] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	@@down_2:
+	mov		ah , 1
+	mov		[@@pos] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	
+	
+	@@left:
+	mov		ax , [@@pos]
+	dec		al
+	cmp		al , 0
+	je		@@left_2
+	mov		[@@pos] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	@@left_2:
+	mov		al , screenWidth
+	mov		[@@pos] , ax 
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	
+	@@right:
+	mov		ax , [@@pos]
+	inc		al
+	cmp		al , screenWidth
+	je		@@right_2
+	mov		[@@pos] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	@@right_2:
+	mov		al , 0
+	mov		[@@pos] , ax
+	movzx	bx , al
+	movzx	cx , ah
+	call	SetCursorPos , bx , cx
+	jmp		@@for
+	
+	
+	
+@@exit:
+	call	HideCursor
+	ret	   
+endp
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -421,27 +792,64 @@ endp
 start:
 	mov	ax , @data
 	mov	ds , ax
- 
-	call	InitializeRandomGenerator
 	call	initVideo
+	call	InitializeRandomGenerator
 	call	HideCursor
 @@again:
 	call    ReadScreen  , offset fileName , offset buf
 	call	OutputScreenImage , offset buf
-	call	GameMenu , 4 , offset paramString
+	call	GameMenu , 4 , offset paramString , 8
 	cmp	ax , 1
 	je	@@start
 	cmp	ax , 4
 	je	@@exit
+	cmp	ax , 2
+	je	@@selectLevel
+	cmp	ax , 3
+	je	@@edit
+	jmp	@@again
+@@edit:
+	call	EditLevel
+	jmp	@@again
+@@selectLevel:
+	call	SelectLevel
 	jmp	@@again
 @@start:
-	call	StartGame , 3000 ,offset levelName , 15 , 10
-	jmp	@@again
+	mov	ah , 3dh
+	mov	dx , offset levelInc
+	mov	al , 0
+	int	21h
+	jc	@@exit
+	mov	si , ax
+	mov	bx , ax
+	mov	ah , 3fh
+	mov	dx , offset help
+	mov	cx , 3
+	int	21h
+	jc	@@exit
+	mov	ah , 3eh
+	mov	bx , si   
+	int	21h
+	movzx	ax , [help]
+	movzx	bx , [help + 1]
+	movzx	cx , [help + 2]
+	call	StartGame , cx ,offset levelName , bx , ax
+	cmp		ax , 1
+	je		@@start
+	jmp		@@again
 
 @@exit:
 	call	ClearScreen
-	call	ShutdownVideo
 	call	ExitProgram
+
+
+
+
+
+
+
+
+
 
 
 end	start
