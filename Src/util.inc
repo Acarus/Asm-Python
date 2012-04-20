@@ -9,6 +9,16 @@ KEY_UP			EQU	48h
 KEY_DOWN		EQU	50h
 KEY_LEFT		EQU	4bh
 KEY_RIGHT		EQU	4dh
+KEY_F1			EQU	3bh		
+KEY_F2			EQU	3ch
+KEY_F3			EQU	3dh
+KEY_F4			EQU	3eh
+KEY_F5			EQU 3fh
+KEY_F6			EQU 40h
+KEY_F7			EQU	41h
+KEY_F8			EQU	42h
+KEY_CLEAR		EQU 0eh
+
 
 ; exitCode
 ; no results
@@ -22,6 +32,8 @@ global InitVideo: proc
 ;no results
 
 global GameMenu: proc
+
+global StringToInt: proc
 
 global intToString: proc
 
