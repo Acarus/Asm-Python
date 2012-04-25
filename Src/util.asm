@@ -691,7 +691,6 @@ SELECT_X = MENU_X-2
 	jmp	@@q
 	
 @@k_down:
-	xor	bx , bx
 	mov	bx , [@@argc]
 	mov	al , [@@active]
 	cmp	bl , al
@@ -699,25 +698,29 @@ SELECT_X = MENU_X-2
 	mov	al , [@@active]
 	inc	al
 	mov	[@@active] , al
-	dec	al
-	movzx	cx , al 
-	shl	cx , 1
-	add	cx , 6
-	push 	cx
-	call	outputChar , 6 , cx , ' ' , 7
+	movzx	cx , al                             
+	dec	cx
+	shl	cx ,1
+	mov	ax ,[@@spos]
+	add	cx , ax
+	push	cx
+	call	outputChar , SELECT_X , cx , 16 , 5
 	pop	cx
-	add	cx , 2
-	call	outputChar , 6 , cx , 16 , 5
+	sub	cx , 2
+	call	outputChar , SELECT_X , cx , ' ' , 7
+
 	jmp		@@q
 	
 @@k_down_2:
 	mov	al , 1
 	mov	[@@active] , al
-	call	outputChar , 6 , 8 , 16 , 5
+	
+	mov     cx , [@@spos]
+	call	outputChar , SELECT_X , cx , 16 , 5
 	mov	ax , [@@argc]
 	shl	ax , 1
-	add	ax , 6
-	call	outputChar , 6 , ax , ' ' , 7
+	add	ax , SELECT_X
+	call	outputChar , SELECT_X , ax , ' ' , 7
 	jmp	@@q
 	
 @@k_enter:
