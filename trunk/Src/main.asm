@@ -14,6 +14,7 @@ include "util.inc"
 
 LEVEL_COUNT	EQU	9
 RABBITS_PER_LEVEL EQU	16
+INITIAL_GROWTH 	EQU	2
 GROWTH_PER_RABBIT EQU	1
 
 TARGET_SYMBOL	EQU	0cfh
@@ -111,13 +112,12 @@ endp
 
 
 
-
 ; pos = ((y - 1) * width + x) * 2 - 2
 proc	StartGame
 ARG		@@levelSpeed:byte , @@levelScreen:word , @@start_X:byte , @@start_Y:byte
 local	@@head:word , @@tail:word , @@direction:byte , @@size:byte , @@help:byte 
 @@start_game_l:
-	mov		[@@size] , 2
+	mov		[@@size] , INITIAL_GROWTH
 	mov		ax, [@@levelScreen]
 	call	ReadScreen , ax , offset buf
 	call	OutputScreenImage , offset buf
@@ -241,11 +241,11 @@ local	@@head:word , @@tail:word , @@direction:byte , @@size:byte , @@help:byte
 
 	mov		ah , [@@help]
 	cmp		ah , KEY_UP
-	je		@up
+	je		@@up
 	cmp		ah , KEY_DOWN
-	je		@down
+	je		@@down
 	cmp		ah , KEY_LEFT
-	je		@left
+	je		@@left
 	cmp		ah , KEY_RIGHT
 	je		@@right
 	cmp		ah , KEY_ESC
@@ -269,7 +269,7 @@ local	@@head:word , @@tail:word , @@direction:byte , @@size:byte , @@help:byte
 	mov	[@@tail] , ax
 	jmp	@@for
 	
-@up:
+@@up:
 	mov	ah , 1
 	mov	[@@direction] , ah
 	mov	ax , [@@head]
@@ -279,19 +279,17 @@ local	@@head:word , @@tail:word , @@direction:byte , @@size:byte , @@help:byte
 	movzx 	cx , ah
 	call	get_pos , bx , cx
 	mov		ah , [buf + si]
-	cmp		ah , WALL_SYMBOL
-	je		@@exit
-	cmp		ah , BODY_SYMBOL
-	je		@@exit
 	cmp		ah , TARGET_SYMBOL
 	je		@@eat
+	cmp		ah , ' '
+	jne		@@exit
 	pop		ax
 	cmp	ah , 0
 	jne	@@for3
 	mov	ah , screenHeight
 	jmp	@@for3
 	
-@down:
+@@down:
 	mov	ah , 2
 	mov	[@@direction] , ah
 	mov	ax , [@@head]
@@ -313,7 +311,7 @@ local	@@head:word , @@tail:word , @@direction:byte , @@size:byte , @@help:byte
 	mov	ah , 0
 	jmp	@@for3
 	
-@left:
+@@left:
 	mov	ah , 3
 	mov	[@@direction] , ah
 	mov		ax , [@@head]
@@ -485,7 +483,7 @@ proc EditLevel
 	mov		[levelName + 13] , ah
 	mov		[levelInc + 13] , ah
 	jmp		@@next
-	@@1:
+@@1:
 	mov		ah , 31h
 	mov		[levelName + 13] , ah
 	mov		[levelInc + 13] , ah
@@ -783,7 +781,6 @@ proc EditLevel
 	call	HideCursor
 	ret	   
 endp
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
