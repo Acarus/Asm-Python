@@ -703,7 +703,9 @@ SELECT_X = MENU_X-2
 	movzx	cx , al 
 	shl	cx , 1
 	add	cx , 6
+	push 	cx
 	call	outputChar , 6 , cx , ' ' , 7
+	pop	cx
 	add	cx , 2
 	call	outputChar , 6 , cx , 16 , 5
 	jmp		@@q
