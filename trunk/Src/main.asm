@@ -111,6 +111,24 @@ ARG 	@@x:byte , @@y:byte
 endp
 
 
+proc outputToBuf
+Arg @@X: byte, @@Y: byte, @@SYM: byte, @@Attr: byte
+	push		si
+	call		outputChar, [@@x], [@@y], [@@sym], [@@attr]
+	mov		ax , screenWidth
+	movzx		cx , [@@y]
+	dec		cx
+	mul		cx
+	add		ax , [@@x]
+	shl		ax , 1
+	mov		si , ax
+	mov		[byte ptr buf + si - 2] , HEAD_SYMBOL
+	mov		[byte ptr buf + si - 1] , HEAD_ATTR	
+	pop		si
+	ret
+endp
+
+
 
 ; pos = ((y - 1) * width + x) * 2 - 2
 proc	StartGame
@@ -119,43 +137,15 @@ local	@@head:word , @@tail:word , @@direction:byte , @@size:byte , @@help:byte
 @@start_game_l:
 	mov		[@@size] , INITIAL_GROWTH
 	mov		ax, [@@levelScreen]
-	call	ReadScreen , ax , offset buf
-	call	OutputScreenImage , offset buf
 	mov		ah , [@@start_Y]
 	mov		al , [@@start_X]
 	mov		[@@head] , ax
-	movzx	bx , al
-	movzx	cx , ah
-	push	bx
-	push	cx
-	call	outputChar , bx , cx , HEAD_SYMBOL , HEAD_ATTR
-	pop		cx
-	pop		bx
-	mov		ax , screenWidth
-	dec		cx
-	mul		cx
-	add		ax , bx
-	shl		ax , 1
-	mov		si , ax
-	mov		[buf + si - 2] , HEAD_SYMBOL
-	mov		[buf + si - 1] , HEAD_ATTR	
-	mov		ax , [@@head]
-	inc		ah
-	movzx	bx , al
-	movzx	cx , ah
-	push	bx
-	push	cx
-	call	outputChar , bx , cx , BODY_SYMBOL , BODY_ATTR
-	pop		cx
-	pop		bx
-	mov		ax , screenWidth
-	dec		cx
-	mul		cx
-	add		ax , bx
-	shl		ax , 1
-	mov		si , ax
-	mov		[buf + si - 2] , BODY_SYMBOL
-	mov		[buf + si - 1] , BODY_ATTR
+
+	call	ReadScreen , ax , offset buf
+	call	OutputScreenImage , offset buf
+	call	outputToBuf , [@@start_X] , [@@start_Y] , HEAD_SYMBOL , HEAD_ATTR
+
+
 	mov		[@@tail] , 2
 	mov		ax , [@@head]
 	inc		ah
