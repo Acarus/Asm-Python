@@ -353,8 +353,8 @@ ARG @@x:byte , @@y:byte
 
 	mov	ah , 02h
 	mov	bh , 0
-	mov	dh , [@@x]
-	mov	dl , [@@y]
+	mov	dh , [@@y]
+	mov	dl , [@@x]
 	int	10h
 
 	POP_PROC_REGS
